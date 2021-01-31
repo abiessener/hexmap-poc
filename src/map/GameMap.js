@@ -202,14 +202,14 @@ class GameMap {
 
     const lines = rangeX.map(x => {
       let result = '| '
-      if (x % 2 !== 0) result = result.concat('  ')
+      if (x % 2 !== 0) result = result.concat('   ')
 
       rangeY.map(y => {
         const currentHex = this.getHex(x,y)
         result = result.concat(`[${currentHex.getCoordinateString()}] `)
       })
       
-      if (x % 2 === 0) result = result.concat('  ')
+      if (x % 2 === 0) result = result.concat('   ')
 
       console.log(result.concat(' |'))
     })
