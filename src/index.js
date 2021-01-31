@@ -5,11 +5,13 @@ const Jimp = require('jimp')
 const { range } = require('./util/functional')
 const tinyColor = require('tinyColor2')
 
+const startTime = Date.now()
+
 const beef = { taco: 'hello' }
 
 logger.log(beef)
 
-const BASE_MAP_SIZE = 20
+const BASE_MAP_SIZE = 50
 
 const LANDFORMS = {
   MOUNTAIN: {
@@ -111,7 +113,13 @@ const main = async() => {
 }
 
 main().then(result => {
-  console.log('finished', result)
+  logger.log({
+    result,
+    elapsedMillis: Date.now() - startTime
+  })
 }).catch(error => {
-  console.log('error', error)
+  logger.log({
+    error,
+    elapsedMillis: Date.now() - startTime
+  })
 })
