@@ -9,9 +9,35 @@ const beef = { taco: 'hello' }
 
 logger.log(beef)
 
-const BASE_MAP_SIZE = 10
+const BASE_MAP_SIZE = 20
 
-const getLandform = (jimpImage) => {
+const LANDFORMS = {
+  MOUNTAIN: {
+    name: 'mountain',
+    glyph: '^'
+  },
+  PLAINS: {
+    name: 'plains',
+    glyph: '.'
+  },
+  RIVER: {
+    NAME: 'river',
+    glyph: '~'
+  },
+  UNKNOWN: {
+    name: 'unknown',
+    glyph: ' '
+  }
+}
+const LANDFORM_TO_COLOR_DICT = {
+  '63,72,204,255': LANDFORMS.RIVER,
+  '255,255,255,255': LANDFORMS.PLAINS,
+  '185,122,86,255': LANDFORMS.MOUNTAIN
+}
+
+const colorResults = {}
+
+const getLandform = (hex) => {
   // logger.log({ lf: jimpImage.bitmap.data.slice(0,40).map(String) })
   // const colorString = `rgba (${jimpImage.bitmap.data[0]},${jimpImage.bitmap.data[1]},${jimpImage.bitmap.data[2]},${jimpImage.bitmap.data[3]})`
   // console.log('colorString', colorString)
@@ -24,6 +50,14 @@ const getLandform = (jimpImage) => {
   //   key = colors.join(','); resultDto[key]++
   // return key with highest count
 
+  hex.imageChunk.pixelate(Math.min(hex.imageChunk.bitmap.width, hex.imageChunk.bitmap.height))
+
+  // await hex.imageChunk.write(`./dist/px_${hex.positionY}_${hex.positionX}.png`)
+  const colorString = `${hex.imageChunk.bitmap.data[0]},${hex.imageChunk.bitmap.data[1]},${hex.imageChunk.bitmap.data[2]},${hex.imageChunk.bitmap.data[3]}`
+  const landform = LANDFORM_TO_COLOR_DICT[colorString] || LANDFORMS.UNKNOWN
+
+  if (!colorResults[colorString]) colorResults[colorString] = true
+  return landform
 } 
 
 const main = async() => {
@@ -60,22 +94,19 @@ const main = async() => {
   const rangeY = range(mapSize.y)
 
   rangeX.forEach(x => {
-    rangeY.forEach(y => {
+    rangeY.forEach((y) => {
       const currentHex = map.getHex(x,y)
       currentHex.imageChunk = getImageChunk(image, x, y, tileSize)
-      // currentHex.landform = getLandform(currentHex.imageChunk)
+      currentHex.landform = getLandform(currentHex)
     })
   })
 
-  const hex0 = map.getHex(0,0)
+  const hex0 = map.getHex(10,10)
   hex0.printAttributes()
-  getLandform(hex0.imageChunk)
 
-  logger.debug({ 
-    bitmapKeys: Object.keys(hex0.imageChunk.bitmap)
-  })
+  map.drawLandforms()
 
-  
+  logger.log({ colorResults })
   return 'success'
 }
 

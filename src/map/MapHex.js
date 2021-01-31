@@ -27,6 +27,7 @@ class MapHex {
       .filter(([direction, hex]) => !!hex)
       .map(([direction, hex]) => ({ direction, x: hex.positionX, y: hex.positionY }))
     if (cardinalBorders) result.cardinalBorders = Object.values(this.cardinalBorders)
+    if (this.landform) result.landform = Object.values(this.landform)
 
     logger.log({ hex: result })
   }

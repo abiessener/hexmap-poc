@@ -215,6 +215,26 @@ class GameMap {
     })
   }
 
+  drawLandforms() {
+    const rangeX = range(this.sizeX)
+    const rangeY = range(this.sizeY)
+
+    const lines = rangeY.map(y => {
+      let result = '| '
+      if (y % 2 !== 0) result = result.concat(' ')
+
+      rangeX.map(x => {
+        const currentHex = this.getHex(x,y)
+        result = result.concat(`${currentHex.landform.glyph} `)
+      })
+      
+      if (y % 2 === 0) result = result.concat(' ')
+
+      console.log(result.concat(' |'))
+    })
+
+  }
+
 }
 
 module.exports = GameMap
