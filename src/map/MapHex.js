@@ -1,3 +1,5 @@
+const logger = require('../util/logger')
+
 class MapHex {
   ERROR_MESSAGES = {
     INVALID_ARGUMENT_TYPE: 'Invalid argument type.'
@@ -16,6 +18,17 @@ class MapHex {
 
   getCoordinateString() {
     return `${this.positionX},${this.positionY}`
+  }
+
+  printAttributes(coordinates = true, neighbors = true, cardinalBorders = true) {
+    const result = {}
+    if (coordinates) result.coordinates = { x: this.positionX, y: this.positionY }
+    if (neighbors) result.neighbors = Object.entries(this.neighbors)
+      .filter(([direction, hex]) => !!hex)
+      .map(([direction, hex]) => ({ direction, x: hex.positionX, y: hex.positionY }))
+    if (cardinalBorders) result.cardinalBorders = Object.values(this.cardinalBorders)
+
+    logger.log({ hex: result })
   }
 
 }
