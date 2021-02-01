@@ -3,16 +3,14 @@ const GameMap = require('./map/GameMap')
 const { getImageChunk } = require('./map/image');
 const Jimp = require('jimp')
 const { range } = require('./util/functional')
-const tinyColor = require('tinyColor2')
 
 const startTime = Date.now()
 
-const beef = { taco: 'hello' }
-
-logger.log(beef)
-
 const BASE_MAP_SIZE = 50
 
+  /**
+   * todo: get this somewhere not stupid
+   */
 const LANDFORMS = {
   MOUNTAIN: {
     name: 'mountain',
@@ -31,6 +29,10 @@ const LANDFORMS = {
     glyph: ' '
   }
 }
+
+  /**
+   * todo: get this somewhere not stupid
+   */
 const LANDFORM_TO_COLOR_DICT = {
   '63,72,204,255': LANDFORMS.RIVER,
   '255,255,255,255': LANDFORMS.PLAINS,
@@ -39,22 +41,12 @@ const LANDFORM_TO_COLOR_DICT = {
 
 const colorResults = {}
 
+  /**
+   * todo: get this somewhere not stupid
+   */
 const getLandform = (hex) => {
-  // logger.log({ lf: jimpImage.bitmap.data.slice(0,40).map(String) })
-  // const colorString = `rgba (${jimpImage.bitmap.data[0]},${jimpImage.bitmap.data[1]},${jimpImage.bitmap.data[2]},${jimpImage.bitmap.data[3]})`
-  // console.log('colorString', colorString)
-  // const color = tinyColor(colorString)
-  // logger.log({ hexValue: color.toHex(), name: color.toName() })
-
-  // chunk data into 4s
-  //   colors = jimpImage.bitmap.data[0-3]
-  // build DTO with how much of each 
-  //   key = colors.join(','); resultDto[key]++
-  // return key with highest count
-
   hex.imageChunk.pixelate(Math.min(hex.imageChunk.bitmap.width, hex.imageChunk.bitmap.height))
 
-  // await hex.imageChunk.write(`./dist/px_${hex.positionY}_${hex.positionX}.png`)
   const colorString = `${hex.imageChunk.bitmap.data[0]},${hex.imageChunk.bitmap.data[1]},${hex.imageChunk.bitmap.data[2]},${hex.imageChunk.bitmap.data[3]}`
   const landform = LANDFORM_TO_COLOR_DICT[colorString] || LANDFORMS.UNKNOWN
 
@@ -63,12 +55,12 @@ const getLandform = (hex) => {
 } 
 
 const main = async() => {
-  console.log('main')
+  /**
+   * todo: get this whole thing into a method(s) on GameMap
+   * basically main() should only invoke methods on GameMap (and maybe MapHex) probably
+   */
 
   const image = await Jimp.read('./data/paint_test_1.png')
-  logger.debug({ image: Object.keys(image), 
-    bitmap: Object.keys(image.bitmap) 
-  })
 
   const aspectRatio = image.bitmap.width / image.bitmap.height
 
@@ -102,9 +94,6 @@ const main = async() => {
       currentHex.landform = getLandform(currentHex)
     })
   })
-
-  const hex0 = map.getHex(10,10)
-  hex0.printAttributes()
 
   map.drawLandforms()
 
