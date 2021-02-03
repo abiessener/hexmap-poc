@@ -225,7 +225,7 @@ class GameMap {
 
       rangeX.map(x => {
         const currentHex = this.getHex(x,y)
-        result = result.concat(`${currentHex.landform.glyph} `)
+        result = result.concat(`${currentHex.landform && currentHex.landform.glyph} `)
       })
       
       if (y % 2 === 0) result = result.concat(' ')

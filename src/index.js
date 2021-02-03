@@ -1,66 +1,90 @@
+const chroma = require('chroma-js')
 const logger = require('./util/logger')
 const GameMap = require('./map/GameMap')
 const { getImageChunk } = require('./map/image');
 const Jimp = require('jimp')
-const { range } = require('./util/functional')
+const { range } = require('./util/functional');
+const directions = require('./const/directions');
 
 const startTime = Date.now()
 
-const BASE_MAP_SIZE = 50
+const BASE_MAP_SIZE = 100
 
-  /**
-   * todo: get this somewhere not stupid
-   */
+/**
+ * todo: get this somewhere not stupid
+ * todo: inputs for baseColor
+ * todo: more landforms
+ */
 const LANDFORMS = {
   MOUNTAIN: {
     name: 'mountain',
-    glyph: '^'
+    glyph: '^',
+    baseColorRgbArray: [185, 122, 86]
   },
   PLAINS: {
     name: 'plains',
-    glyph: '.'
+    glyph: '.',
+    baseColorRgbArray: [255, 255, 255]
   },
   RIVER: {
-    NAME: 'river',
-    glyph: '~'
+    name: 'river',
+    glyph: '~',
+    baseColorRgbArray: [63, 72, 204]
   },
   UNKNOWN: {
     name: 'unknown',
-    glyph: ' '
+    glyph: ' ',
+    colorDistance: 9999
   }
 }
 
-  /**
-   * todo: get this somewhere not stupid
-   */
+/**
+ * todo: get this somewhere not stupid
+ */
 const LANDFORM_TO_COLOR_DICT = {
   '63,72,204,255': LANDFORMS.RIVER,
   '255,255,255,255': LANDFORMS.PLAINS,
   '185,122,86,255': LANDFORMS.MOUNTAIN
 }
 
-const colorResults = {}
+const colorStringToLandformDict = {}
 
-  /**
-   * todo: get this somewhere not stupid
-   */
+/**
+ * todo: get this somewhere not stupid
+ */
 const getLandform = (hex) => {
   hex.imageChunk.pixelate(Math.min(hex.imageChunk.bitmap.width, hex.imageChunk.bitmap.height))
 
   const colorString = `${hex.imageChunk.bitmap.data[0]},${hex.imageChunk.bitmap.data[1]},${hex.imageChunk.bitmap.data[2]},${hex.imageChunk.bitmap.data[3]}`
-  const landform = LANDFORM_TO_COLOR_DICT[colorString] || LANDFORMS.UNKNOWN
+  let landform = colorStringToLandformDict[colorString]
 
-  if (!colorResults[colorString]) colorResults[colorString] = true
+  if (!landform) {
+    const rgbColorArray = colorString.split(',').slice(0, 3)
+
+    landform = Object.values(LANDFORMS)
+      .filter(lf => !!lf.baseColorRgbArray)
+      .map(landformConst => ({ // todo: move this into its own method, or maybe the map/reduce callbacks
+        ...landformConst,
+        colorDistance: chroma.deltaE(landformConst.baseColorRgbArray, rgbColorArray)
+      })).reduce((chosenLandform, landform) => {
+        if (landform.colorDistance < chosenLandform.colorDistance) return landform
+
+        return chosenLandform
+      }, LANDFORMS.UNKNOWN)
+
+    colorStringToLandformDict[colorString] = landform
+  }
+
   return landform
-} 
+}
 
-const main = async() => {
+const main = async () => {
   /**
    * todo: get this whole thing into a method(s) on GameMap
    * basically main() should only invoke methods on GameMap (and maybe MapHex) probably
    */
 
-  const image = await Jimp.read('./data/paint_test_1.png')
+  const image = await Jimp.read('./data/desert_hut.png')
 
   const aspectRatio = image.bitmap.width / image.bitmap.height
 
@@ -74,22 +98,16 @@ const main = async() => {
     y: Number.parseInt(image.bitmap.height / mapSize.y),
   }
 
-  logger.debug({
-    imageX: image.bitmap.width,
-    imageY: image.bitmap.height,
-    aspectRatio,
-    mapSize
-  })
-
   const map = new GameMap({ sizeX: Number.parseInt(mapSize.x), sizeY: Number.parseInt(mapSize.y) })
   map.generateSquareGrid()
+
 
   const rangeX = range(mapSize.x)
   const rangeY = range(mapSize.y)
 
   rangeX.forEach(x => {
     rangeY.forEach((y) => {
-      const currentHex = map.getHex(x,y)
+      const currentHex = map.getHex(x, y)
       currentHex.imageChunk = getImageChunk(image, x, y, tileSize)
       currentHex.landform = getLandform(currentHex)
     })
@@ -97,7 +115,14 @@ const main = async() => {
 
   map.drawLandforms()
 
-  logger.log({ colorResults })
+  logger.debug({
+    imageX: image.bitmap.width,
+    imageY: image.bitmap.height,
+    aspectRatio,
+    mapSize
+  })
+
+
   return 'success'
 }
 
@@ -107,6 +132,7 @@ main().then(result => {
     elapsedMillis: Date.now() - startTime
   })
 }).catch(error => {
+  console.error(error)
   logger.log({
     error,
     elapsedMillis: Date.now() - startTime
